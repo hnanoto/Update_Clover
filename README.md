@@ -3,6 +3,7 @@
 # Update Clover Script
 
 https://www.youtube.com/channel/UC-SkAYQyY0e49ALoOrdcOTQ
+
 https://discord.gg/5hvZ5u7QXQ
 
 Este script Python automatiza o processo de atualização do seu bootloader Clover para a versão mais recente disponível no repositório [hnanoto/CloverBootloader-Hackintosh-and-Beyond](https://github.com/hnanoto/CloverBootloader-Hackintosh-and-Beyond). Ele foi desenvolvido para simplificar e agilizar a atualização, tornando-a mais acessível para usuários da comunidade Hackintosh.
