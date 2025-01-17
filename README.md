@@ -1,6 +1,10 @@
 # Update Clover Script
 
-Este script Python automatiza o processo de atualização do seu bootloader Clover para a versão mais recente disponível no repositório [hnanoto/CloverBootloader-Hackintosh-and-Beyond](https://github.com/hnanoto/CloverBootloader-Hackintosh-and-Beyond). Ele foi desenvolvido para simplificar e agilizar a atualização, tornando-a mais acessível para usuários da comunidade Hackintosh.
+Este script Python automatiza o processo de atualização do seu bootloader Clover para a versão mais recente disponível no repositório [hnanoto/CloverBootloader-Hackintosh-and-Beyond](https://github.com/hnanoto/CloverBootloader-Hackintosh-and-Beyond). Ele foi desenvolvido para simplificar e agilizar a atualização, tornando-a mais acessível para usuários da comunidade Hackintosh. 
+
+https://www.youtube.com/channel/UC-SkAYQyY0e49ALoOrdcOTQ
+
+https://discord.gg/5hvZ5u7QXQ
 
 ## Funcionalidades
 
@@ -117,6 +121,11 @@ O script utiliza a função `locale.getdefaultlocale()` para obter o idioma pref
 Update Clover Script
 
 This Python script automates the process of updating your Clover bootloader to the latest version available on the [hnanoto/CloverBootloader-Hackintosh-and-Beyond](https://github.com/hnanoto/CloverBootloader-Hackintosh-and-Beyond) repository. It's designed to simplify and streamline the update process, making it more accessible to users in the Hackintosh community.
+
+https://www.youtube.com/channel/UC-SkAYQyY0e49ALoOrdcOTQ
+
+https://discord.gg/5hvZ5u7QXQ
+
 
 ## Features
 
