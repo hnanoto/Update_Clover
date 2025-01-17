@@ -90,9 +90,9 @@ Contribuições para melhorar este script são bem-vindas! Sinta-se à vontade p
 
 ## Créditos
 
--   **Desenvolvedores do Clover:** Pelo excelente bootloader Clover.
+-   **Desenvolvedores do Clover:Slice Pelo excelente bootloader Clover.
 -   **Comunidade Hackintosh:** Por todo o suporte e conhecimento compartilhado.
--   **[Henrique/hnnanoto GitHub]** - pela criação desse script.
+-   **[Henrique/hnnanoto GitHub]hnanoto - pela criação desse script.
 
 ## Isenção de Responsabilidade
 
@@ -205,9 +205,9 @@ Contributions to improve this script are welcome! Feel free to open a Pull Reque
 
 ## Credits
 
--   **Clover Developers:** For the excellent Clover bootloader.
+-   **Clover Developers:Slice For the excellent Clover bootloader.
 -   **Hackintosh Community:** For all the support and shared knowledge.
--   **Henrique/hnanoto:** For creating this script.
+-   **Henrique/hnanoto:hnanoto For creating this script.
 
 ## Disclaimer
 
@@ -220,8 +220,8 @@ This script is provided "as is", without warranty of any kind. The author and co
 The script has been updated to support translation of text messages into different languages. It currently supports Portuguese and English.
 
 
--   **Clover Developers:** For the excellent Clover bootloader.
+-   **Clover Developers:Slice For the excellent Clover bootloader.
 -   **Hackintosh Community:** For all the support and shared knowledge.
--   **[Henrique/GitHub hnanoto]** - for creating this script.
+-   **[Henrique/GitHub hnanoto]hnanoto - for creating this script.
 
 
