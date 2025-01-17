@@ -1,24 +1,26 @@
-# Update_Clover
-
 # Update Clover Script
-
-https://www.youtube.com/channel/UC-SkAYQyY0e49ALoOrdcOTQ
-
-https://discord.gg/5hvZ5u7QXQ
 
 Este script Python automatiza o processo de atualização do seu bootloader Clover para a versão mais recente disponível no repositório [hnanoto/CloverBootloader-Hackintosh-and-Beyond](https://github.com/hnanoto/CloverBootloader-Hackintosh-and-Beyond). Ele foi desenvolvido para simplificar e agilizar a atualização, tornando-a mais acessível para usuários da comunidade Hackintosh.
 
 ## Funcionalidades
 
+-   **Detecção Automática de Idioma:** O script agora detecta automaticamente o idioma do sistema (Português ou Inglês) e exibe as mensagens no idioma correspondente. As mensagens são armazenadas em arquivos JSON separados na pasta `translations` para facilitar a tradução para outros idiomas.
+-   **Menu Interativo:** Um menu interativo permite que você escolha quais componentes atualizar:
+    -   **Atualizar BOOTX64.efi e CLOVERX64.efi:** Atualiza apenas os arquivos de inicialização principais do Clover.
+    -   **Atualizar Drivers:** Atualiza apenas os drivers UEFI na pasta `EFI/CLOVER/Drivers/UEFI`.
+    -   **Atualização Completa:** Atualiza os arquivos de inicialização e os drivers UEFI.
+    -   **Sair:** Sai do script.
 -   **Verificação de Ambiente:** Verifica se o script está sendo executado no macOS.
--   **Verificação de Dependências:** Garante que as dependências necessárias (`curl`, `unzip`, `PlistBuddy`, `installer`) estejam instaladas.
--   **Download Automático:** Baixa a última versão do Clover do repositório [hnanoto/CloverBootloader-Hackintosh-and-Beyond](https://github.com/hnanoto/CloverBootloader-Hackintosh-and-Beyond).
--   **Detecção de Partições EFI:** Lista todas as partições EFI disponíveis e permite que você escolha qual deseja atualizar.
+-   **Verificação de Dependências:** Garante que as dependências necessárias (`curl`, `unzip`, `/usr/libexec/PlistBuddy`, `installer`) estejam instaladas.
+-   **Download Inteligente:** Baixa a última versão do Clover apenas uma vez e a reutiliza para todas as operações de atualização, economizando tempo e largura de banda.
+-   **Detecção de Bootloader:** Verifica se a partição EFI selecionada contém uma instalação do Clover. Se o OpenCore ou o Gerenciador de Boot do Windows forem detectados, o script aborta a operação para evitar danos.
+-   **Espera por Montagem:** Se a partição EFI selecionada não estiver montada, o script aguarda até que você a monte manualmente. Ele fornece instruções claras e permite que você continue a atualização assim que a partição estiver pronta.
 -   **Backup da EFI:** Cria um backup completo da sua partição EFI antes de realizar qualquer modificação. Os backups são armazenados na pasta `EFI_BACKUPS` dentro do diretório `HOME` do usuário, com nomes contendo a data e hora do backup. Os backups são nomeados sequencialmente se já existir um no mesmo minuto.
--   **Atualização dos Arquivos de Boot:** Atualiza os arquivos `BOOTX64.efi` e `CLOVERX64.efi` na sua partição EFI.
--   **Atualização de Drivers UEFI:** Atualiza os drivers UEFI existentes na pasta `EFI/CLOVER/Drivers/UEFI` da sua partição EFI, comparando-os com os drivers encontrados nas subpastas de `Drivers/Off/UEFI` (`FileSystem`, `FileVault2`, `HID`, `MemoryFix`, `Other`) do Clover baixado. **Importante:** O script sobrescreve apenas os drivers existentes; ele não adiciona novos drivers à sua EFI.
+-   **Atualização Segura:** O script verifica se a partição EFI está montada como leitura/gravação antes de tentar atualizá-la.
+-   **Tratamento de Erros:** O script captura erros e exibe mensagens de erro claras e informativas. Um tipo de exceção personalizado `CloverUpdateError` é usado para erros específicos do script.
+-   **Log Detalhado:** Cria um arquivo de log detalhado (`update_clover_[timestamp].log`) no mesmo diretório do script, registrando todas as ações realizadas, incluindo mensagens de sucesso, avisos e erros.
 -   **Limpeza:** Remove os arquivos temporários baixados após a conclusão da atualização.
--   **Registro de Log:** Cria um arquivo de log detalhado (`update_clover_[timestamp].log`) no mesmo diretório do script, registrando todas as ações realizadas.
+-   **Internacionalização:** Suporte para mensagens em Português (pt-BR) e Inglês (en-US). O idioma é detectado automaticamente com base nas configurações do sistema, mas o Português será usado como padrão se a detecção falhar ou se o idioma do sistema não tiver um arquivo de tradução correspondente.
 
 ## Pré-requisitos
 
@@ -29,44 +31,58 @@ Este script Python automatiza o processo de atualização do seu bootloader Clov
     -   `unzip`
     -   `/usr/libexec/PlistBuddy`
     -   `installer`
-    
+
     Esses comandos geralmente estão pré-instalados no macOS. O script irá verificar se eles estão disponíveis antes de prosseguir.
 -   **Conexão com a Internet:** Uma conexão ativa com a internet é necessária para baixar a última versão do Clover.
+-   **Partição EFI Montada:** **A partição EFI que você deseja atualizar deve estar montada e acessível para escrita antes de executar o script.** Você pode montar a partição EFI manualmente usando o comando `diskutil mount <identificador_da_partição>` (por exemplo, `diskutil mount disk0s1`) no Terminal.
 
 ## Como Executar
 
-1. **Baixe o Script:** Baixe o script `Update_Clover.py` do repositório.
-2. **Torne o Script Executável:** Abra o Terminal e navegue até o diretório onde você baixou o script. Em seguida, execute o comando:
-    
+1. **Baixe o Script:** Baixe o script `main.py` e os arquivos e pastas `clover_updater.py`, `config.py`, `efi_handler.py`, `logger.py`, `menu.py`, `utils.py`, e a pasta `translations` do repositório.
+2. **Descompacte o arquivo zip e coloque os arquivos na mesma pasta em um diretório de sua escolha, exemplo: `update_clover`.**
+3. **Torne o Script Executável:** Abra o Terminal e navegue até o diretório onde você baixou o script, exemplo: `cd update_clover`. Em seguida, execute o comando:
+
     ```bash
-    chmod +x Update_Clover.py
+    chmod +x main.py
     ```
-    
-3. **Execute o Script com Privilégios de Administrador:** Execute o script com `sudo` para garantir que ele tenha as permissões necessárias para modificar a partição EFI:
-    
+
+4. **Execute o Script com Privilégios de Administrador:** Execute o script com `sudo` para garantir que ele tenha as permissões necessárias para modificar a partição EFI:
+
     ```bash
-    sudo python3 Update_Clover.py
+    sudo python3 main.py
     ```
-    
-4. **Siga as Instruções na Tela:**
-    
+
+5. **Siga as Instruções na Tela:**
+
     -   O script listará as partições EFI detectadas. Digite o número correspondente à partição EFI que você deseja atualizar e pressione Enter.
-    -   O script criará um backup da sua EFI e prosseguirá com a atualização.
+    -   **Certifique-se de que a partição EFI correta esteja montada antes de prosseguir.**
+    -   Se a partição EFI não estiver montada, o script aguardará até que você a monte manualmente.
+    -   O script criará um backup da sua EFI e, em seguida, exibirá um menu com as opções de atualização.
+    -   Escolha a opção desejada e pressione Enter.
     -   Acompanhe o progresso pelo log exibido no Terminal e pelo arquivo `update_clover_[timestamp].log` gerado na mesma pasta do script.
+
+## Menu Interativo
+
+O menu interativo oferece as seguintes opções:
+
+1. **Atualizar BOOTX64.efi e CLOVERX64.efi:** Atualiza os arquivos de boot principais do Clover.
+2. **Atualizar Drivers:** Atualiza os drivers UEFI na pasta `EFI/CLOVER/Drivers/UEFI`.
+3. **Atualização Completa:** Atualiza os arquivos de boot e os drivers UEFI.
+4. **Sair:** Sai do script.
 
 ## Notas Importantes
 
 -   **Backup:** Embora o script crie backups da sua EFI, é altamente recomendável que você também faça um backup manual da sua partição EFI antes de executar o script, como precaução extra.
--   **Permissões do Backup:** Os backups são criados com permissões que permitem que todos os usuários os leiam (diretórios: `0o755`, arquivos: `0o644`). Isso garante que usuários comuns possam acessar os backups, se necessário.
 -   **Drivers UEFI:** O script **apenas atualiza os drivers UEFI existentes** na sua partição EFI. Ele **não adiciona novos drivers**. Certifique-se de que os drivers necessários para o seu sistema já estejam presentes na sua EFI antes de executar o script.
 -   **Data de Modificação:** O script preserva a data de modificação original dos arquivos do Clover baixado. Portanto, os arquivos atualizados na sua EFI manterão as datas originais, que podem parecer "futuras" dependendo da data de lançamento da versão do Clover.
--   **Testado em:** O script foi testado em macOS(versão do macOS que vc testou).
+-   **Testado em:** O script foi testado em macOS (versão do macOS que vc testou).
 
 ## Solução de Problemas
 
 -   **Erros de Permissão:** Se você encontrar erros relacionados a permissões, certifique-se de estar executando o script com `sudo`.
 -   **Falha no Download:** Se o download do Clover falhar, verifique sua conexão com a internet e tente executar o script novamente.
--   **Partição EFI Não Montada:** Se o script informar que a partição EFI selecionada não está montada, monte-a manualmente usando o comando `diskutil mount <identificador_da_partição>` (por exemplo, `diskutil mount disk0s1`) e execute o script novamente.
+-   **Partição EFI Não Montada:** Se o script informar que a partição EFI selecionada não está montada, **monte-a manualmente usando o comando `diskutil mount <identificador_da_partição>` e execute o script novamente.** O script aguardará até que a partição seja montada antes de continuar.
+-   **Partição EFI Somente Leitura:** Se você receber mensagens de erro indicando que a partição EFI está montada como somente leitura, tente desmontá-la e montá-la novamente. Se o problema persistir, pode ser necessário investigar problemas específicos do seu sistema ou buscar ajuda especializada na comunidade Hackintosh.
 
 ## Contribuições
 
@@ -76,11 +92,24 @@ Contribuições para melhorar este script são bem-vindas! Sinta-se à vontade p
 
 -   **Desenvolvedores do Clover:** Pelo excelente bootloader Clover.
 -   **Comunidade Hackintosh:** Por todo o suporte e conhecimento compartilhado.
--   **[Henrique/hnanoto GitHub]** -  pela criação desse script.
+-   **[Henrique/hnnanoto GitHub]** - pela criação desse script.
 
 ## Isenção de Responsabilidade
 
 Este script é fornecido "como está", sem garantia de qualquer tipo. O autor e os contribuidores não se responsabilizam por quaisquer danos causados pelo uso deste script. Use por sua conta e risco. É sempre recomendável fazer um backup completo do seu sistema antes de fazer qualquer modificação.
+
+---
+
+## Atualização para Detecção Automática de Idioma
+
+O script foi atualizado para suportar tradução de mensagens de texto para diferentes idiomas. Atualmente, ele suporta Português e Inglês.
+
+### Como o Script Detecta o Idioma
+
+O script utiliza a função `locale.getdefaultlocale()` para obter o idioma preferido do sistema operacional do usuário. Com base nisso, ele tenta carregar as mensagens traduzidas do arquivo JSON correspondente na pasta `translations`.
+
+-   Se o script encontrar um arquivo de tradução para o idioma do sistema (por exemplo, `pt.json` para Português), ele carregará as mensagens desse arquivo.
+-   Se nenhum arquivo de tradução for encontrado para o idioma do sistema, o script usará as mensagens padrão em inglês.
 
 
 
