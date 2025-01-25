@@ -60,10 +60,10 @@ def update_bootx64(efi_dir, clover_zip_path):
     logger("unpacking_clover", YELLOW)
     ret_code, _, stderr = run_command(["unzip", "-o", clover_zip_path, "-d", clover_extracted_dir])
     if ret_code != 0:
-        raise CloverUpdateError("Erro ao descompactar o Clover.")
+        raise CloverUpdateError("error_unpacking_clover")
 
     if not os.path.isdir(clover_extracted_dir):
-        raise CloverUpdateError("Diretório 'Clover_extracted' não foi criado.")
+        raise CloverUpdateError("error_directory_not_created")
 
     clover_efi_dir = os.path.join(clover_extracted_dir, "CloverV2", "EFI")
 
