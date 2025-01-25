@@ -1,0 +1,247 @@
+#!/bin/bash
+
+# Encerra o script imediatamente se qualquer comando falhar.
+set -e
+
+# Caminho absoluto para o diretório do script
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+
+# Arquivo de log com timestamp
+LOGFILE="update_clover_$(date +%Y%m%d%H%M%S).log"
+exec > >(tee -a "$LOGFILE") 2>&1
+
+# Cores para feedback visual
+RED="\033[0;31m"
+GREEN="\033[0;32m"
+YELLOW="\033[0;33m"
+NC="\033[0;m" # Sem cor
+
+# --- VARIÁVEL PARA O DIRETÓRIO DE BACKUP ---
+# Escolha um local com espaço suficiente, por exemplo, a pasta do usuário.
+# Será criada uma pasta 'EFI_BACKUPS' dentro do diretório escolhido
+BACKUP_BASE_DIR="$HOME"
+
+# Declaração da variável EFI_DIR com escopo global (para o script)
+EFI_DIR=""
+
+# Função para verificar o ambiente e permissões
+check_environment() {
+    echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${YELLOW}Verificando ambiente...${NC}"
+    if [[ "$OSTYPE" != "darwin"* ]]; then
+        echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${RED}Erro: Este script deve ser executado no macOS.${NC}"
+        exit 1
+    fi
+    # removido verificação de sudo
+    echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${GREEN}Ambiente verificado com sucesso.${NC}"
+}
+
+# Função para verificar dependências
+check_dependencies() {
+    echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${YELLOW}Verificando dependências...${NC}"
+    # Dependências para o Clover: curl, unzip, PlistBuddy, installer
+    for cmd in curl unzip /usr/libexec/PlistBuddy installer; do
+        if ! command -v $cmd &>/dev/null; then
+            echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${RED}Erro: Dependência '$cmd' não encontrada.${NC}"
+            exit 1
+        fi
+    done
+    echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${GREEN}Todas as dependências estão disponíveis.${NC}"
+}
+
+# Função para baixar a última versão do Clover
+download_clover() {
+    echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${YELLOW}Baixando a última versão do Clover do seu repositório...${NC}"
+
+    # Obtém a última release do seu fork
+    CLOVER_LATEST_RELEASE_URL=$(curl -s https://api.github.com/repos/hnanoto/CloverBootloader-Hackintosh-and-Beyond/releases/latest | jq -r '.assets[] | select(.name | test("Clover.*\\.zip$")) | .browser_download_url')
+
+    if [ -z "$CLOVER_LATEST_RELEASE_URL" ]; then
+        echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${RED}Erro: Não foi possível obter o link da última versão do Clover.${NC}"
+        exit 1
+    fi
+
+    # Baixar o arquivo Clover.zip
+    echo "[$(date +%Y-%m-%d\ %H:%M:%S)] Link de download do Clover encontrado: $CLOVER_LATEST_RELEASE_URL"
+    curl -L -o "$SCRIPT_DIR/Clover.zip" "$CLOVER_LATEST_RELEASE_URL"
+
+    if [ ! -f "$SCRIPT_DIR/Clover.zip" ]; then
+        echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${RED}Erro: O download do Clover falhou.${NC}"
+        exit 1
+    fi
+
+    # Verificar o tamanho do arquivo
+    CLOVER_ZIP_SIZE=$(stat -f%z "$SCRIPT_DIR/Clover.zip")
+    if [[ "$CLOVER_ZIP_SIZE" -lt 1000000 ]]; then # Verificar se o tamanho é menor que 1MB (ajuste se necessário)
+        echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${RED}Erro: O arquivo Clover.zip baixado está muito pequeno. Provavelmente o download falhou.${NC}"
+        rm "$SCRIPT_DIR/Clover.zip" # Remover o arquivo inválido
+        exit 1
+    fi
+
+    # Verificar se o arquivo é um ZIP válido
+    if ! unzip -t "$SCRIPT_DIR/Clover.zip" &> /dev/null; then
+        echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${RED}Erro: O arquivo Clover.zip baixado não é um arquivo ZIP válido.${NC}"
+        rm "$SCRIPT_DIR/Clover.zip" # Remover o arquivo inválido
+        exit 1
+    fi
+
+    echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${GREEN}Clover baixado com sucesso.${NC}"
+}
+
+# Função para listar todas as partições EFI
+list_all_efi() {
+    echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${YELLOW}Localizando todas as partições EFI no sistema...${NC}"
+    local ALL_EFIS=$(diskutil list | grep EFI | awk '{print $NF}')
+
+    if [ -z "$ALL_EFIS" ]; then
+        echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${RED}Erro: Nenhuma partição EFI encontrada.${NC}"
+        exit 1
+    fi
+
+    local NUM_EFIS=$(wc -w <<< "$ALL_EFIS") # Conta o número de EFIs
+
+    echo "[$(date +%Y-%m-%d\ %H:%M:%S)] Partições EFI detectadas:"
+    PS3="Selecione o número da partição EFI que deseja usar (ou $((NUM_EFIS + 1)) para sair): "
+    select EFI_PART in $ALL_EFIS "Sair"; do
+        if [[ "$REPLY" -eq "$((NUM_EFIS + 1))" ]]; then
+            echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${YELLOW}Saindo do script...${NC}"
+            exit 0
+        elif [ -n "$EFI_PART" ]; then
+            EFI_DIR=$(diskutil info "$EFI_PART" | grep "Mount Point" | awk -F': ' '{print $2}' | xargs)
+            if [ -z "$EFI_DIR" ]; then
+                echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${RED}Erro: A partição EFI selecionada não está montada.${NC}"
+                echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${YELLOW}Monte a EFI manualmente usando: 'diskutil mount $EFI_PART' e execute o script novamente.${NC}"
+                exit 1
+            fi
+            echo "[$(date +%Y-%m-%d\ %H:%M:%S)] Partição EFI selecionada: $EFI_PART"
+            echo "[$(date +%Y-%m-%d\ %H:%M:%S)] Ponto de montagem: $EFI_DIR"
+            break
+        else
+            echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${RED}Seleção inválida. Tente novamente.${NC}"
+        fi
+    done
+}
+
+# Função para criar backup da EFI
+backup_efi() {
+    # Cria o diretório de backups se ele não existir
+    mkdir -p "$BACKUP_BASE_DIR/EFI_BACKUPS"
+
+    local BACKUP_DIR="$BACKUP_BASE_DIR/EFI_BACKUPS/EFI-Backup-$(date +%Y%m%d%H%M:%S)"
+    echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${YELLOW}Criando backup em $BACKUP_DIR...${NC}"
+
+    # Copiar a pasta EFI do HD para o diretório de backup SEM SUDO
+    /bin/cp -r "$EFI_DIR" "$BACKUP_DIR" || {
+        echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${RED}Erro ao criar o backup.${NC}"
+        exit 1
+    }
+
+    # Alterar o dono do backup para o usuário atual
+    chown -R $(whoami) "$BACKUP_DIR"
+
+    # Definir permissões para o backup (leitura, escrita e execução para o dono)
+    chmod -R u+rwx "$BACKUP_DIR"
+
+    echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${GREEN}Backup criado com sucesso.${NC}"
+}
+
+# Função para atualizar os arquivos do Clover
+update_clover_files() {
+    echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${YELLOW}Atualizando arquivos do Clover...${NC}"
+
+    # Descompactar o Clover
+    echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${YELLOW}Descompactando o Clover...${NC}"
+    unzip -o "$SCRIPT_DIR/Clover.zip" -d "$SCRIPT_DIR/Clover_extracted"
+
+    if [ $? -ne 0 ]; then
+        echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${RED}Erro ao descompactar o Clover.${NC}"
+        exit 1
+    fi
+
+    # Verifica se o diretório Clover_extracted foi criado
+    if [ ! -d "$SCRIPT_DIR/Clover_extracted" ]; then
+        echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${RED}Erro: Diretório 'Clover_extracted' não foi criado.${NC}"
+        exit 1
+    fi
+
+    # Copiar os arquivos do Clover para a EFI, mantendo a estrutura de diretórios
+    echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${YELLOW}Copiando os arquivos do Clover para a EFI...${NC}"
+
+    # Define o caminho para a pasta EFI dentro de CloverV2
+    local CLOVER_EFI_DIR="$SCRIPT_DIR/Clover_extracted/CloverV2/EFI"
+
+    # Atualizar apenas os arquivos de boot
+    echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${YELLOW}Atualizando BOOTX64.efi...${NC}"
+    cp "$CLOVER_EFI_DIR/BOOT/BOOTX64.efi" "$EFI_DIR/EFI/BOOT/BOOTX64.efi"
+
+    echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${YELLOW}Atualizando CLOVERX64.efi...${NC}"
+    cp "$CLOVER_EFI_DIR/CLOVER/CLOVERX64.efi" "$EFI_DIR/EFI/CLOVER/CLOVERX64.efi"
+
+    if [ $? -ne 0 ]; then
+        echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${RED}Erro ao copiar os arquivos do Clover para a EFI.${NC}"
+        exit 1
+    fi
+
+    echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${GREEN}Arquivos do Clover atualizados com sucesso.${NC}"
+}
+
+# Função para atualizar os drivers UEFI do Clover (refatorada)
+update_clover_drivers() {
+    echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${YELLOW}Atualizando drivers UEFI do Clover...${NC}"
+
+    # Define o caminho para a pasta drivers dentro de CloverV2/EFI
+    local CLOVER_DRIVERS_DIR="$SCRIPT_DIR/Clover_extracted/CloverV2/EFI/CLOVER/Drivers"
+    local EFI_DRIVERS_DIR="$EFI_DIR/EFI/CLOVER/Drivers"
+    local EFI_UEFI_DIR="$EFI_DIR/EFI/CLOVER/Drivers/UEFI"
+    local CLOVER_UEFI_DIR="$CLOVER_DRIVERS_DIR/Off/UEFI" # Usaremos apenas os drivers de Off/UEFI
+
+    # Verifica se a pasta UEFI existe na EFI principal
+    if [ ! -d "$EFI_UEFI_DIR" ]; then
+        echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${RED}Erro: A pasta UEFI não foi encontrada em $EFI_DRIVERS_DIR.${NC}"
+        exit 1
+    fi
+
+    # Lista os drivers existentes na pasta UEFI da EFI principal
+    echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${YELLOW}Listando drivers em $EFI_UEFI_DIR...${NC}"
+    local existing_drivers=()
+    while IFS=  read -r -d $'\0'; do
+        existing_drivers+=("$(basename "$REPLY")")
+    done < <(find "$EFI_UEFI_DIR" -maxdepth 1 -iname "*.efi" -print0)
+
+    # Itera pelos drivers existentes na EFI principal
+    for driver_file in "${existing_drivers[@]}"; do
+        # Verifica se o driver existe na pasta Off/UEFI do Clover baixado
+        if [ -f "$CLOVER_UEFI_DIR/$driver_file" ]; then
+            echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${YELLOW}Atualizando driver: $driver_file...${NC}"
+            cp "$CLOVER_UEFI_DIR/$driver_file" "$EFI_UEFI_DIR/$driver_file"
+            if [ $? -ne 0 ]; then
+                echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${RED}Erro ao atualizar o driver $driver_file.${NC}"
+                exit 1
+            fi
+        else
+            echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${YELLOW}Driver $driver_file não encontrado no Clover baixado. Ignorando...${NC}"
+        fi
+    done
+
+    echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${GREEN}Drivers UEFI do Clover atualizados.${NC}"
+}
+
+# Função de limpeza
+cleanup() {
+    echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${YELLOW}Limpando arquivos temporários...${NC}"
+    rm -f "$SCRIPT_DIR/Clover.zip"
+    rm -rf "$SCRIPT_DIR/Clover_extracted"
+    echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${GREEN}Limpeza concluída.${NC}"
+}
+
+# Fluxo principal
+check_environment
+check_dependencies
+download_clover
+list_all_efi
+backup_efi
+update_clover_files
+update_clover_drivers
+echo -e "[$(date +%Y-%m-%d\ %H:%M:%S)] ${GREEN}Atualização do Clover concluída com sucesso!${NC}"
+
+# Executar a limpeza somente se o script for concluído com sucesso
+cleanup
