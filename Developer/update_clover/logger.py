@@ -13,7 +13,7 @@ def get_system_language():
         system_locale = locale.getdefaultlocale()
         if system_locale[0]:
             # Retorna o código do idioma (por exemplo, 'pt_BR', 'en_US')
-            return system_locale[0]
+            return system_locale[0].split('_')[0]  # Retorna apenas o código principal (pt, en, etc.)
         else:
             # Retorna None se não conseguir obter o idioma
             return None
@@ -21,9 +21,12 @@ def get_system_language():
         logger("error_getting_system_language", RED, error=e)
         return None
 
-def load_translations(language):
+def load_translations(language=None):
     """Carrega as traduções de um arquivo JSON."""
     global translations
+    if not language:
+        language = get_system_language() or "en"  # Usa "en" como padrão se não conseguir detectar o idioma
+
     translations_path = os.path.join(SCRIPT_DIR, "translations")
     print(f"Tentando carregar traduções de: {translations_path}/{language}.json")
     try:
@@ -32,10 +35,13 @@ def load_translations(language):
         logger(f"Traduções carregadas com sucesso para o idioma: {language}", GREEN)
     except FileNotFoundError:
         logger("translation_file_not_found", RED, language=language)
+        # Carrega o idioma padrão (inglês) se o arquivo de tradução não for encontrado
+        if language != "en":
+            load_translations("en")
     except json.JSONDecodeError:
         logger("json_decode_error", RED, language=language)
 
-def logger(message_key, color=None, **kwargs):
+def logger(message_key, color=None, return_message=False, **kwargs):
     """Registra mensagens de log no console e em um arquivo."""
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     color_prefix = color if color else ""
@@ -52,8 +58,10 @@ def logger(message_key, color=None, **kwargs):
         return None
 
     log_message = f"[{timestamp}] {color_prefix}{message}{color_suffix}"
-    print(log_message)
-    with open(LOGFILE, "a", encoding="utf-8") as log_file:
-        log_file.write(log_message + "\n")
 
-    return log_message
+    if not return_message:
+        print(log_message)
+        with open(LOGFILE, "a", encoding="utf-8") as log_file:
+            log_file.write(log_message + "\n")
+
+    return message if return_message else log_message
