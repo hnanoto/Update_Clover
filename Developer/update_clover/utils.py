@@ -20,7 +20,7 @@ def check_environment():
     """Verifica se o ambiente é macOS."""
     logger("verifying_environment", YELLOW)
     if sys.platform != "darwin":
-        raise CloverUpdateError("Este script deve ser executado no macOS.")
+        raise CloverUpdateError("error_environment")
     logger("environment_verified", GREEN)
 
 def check_dependencies():
@@ -30,30 +30,30 @@ def check_dependencies():
     for dep in dependencies:
         ret_code, _, _ = run_command(["which", dep])
         if ret_code != 0:
-            raise CloverUpdateError(f"Dependência '{dep}' não encontrada.")
+            raise CloverUpdateError(f"error_dependency_not_found", dep=dep)
     logger("all_dependencies_available", GREEN)
 
 def validate_clover_zip(file_path):
     """Verifica se o arquivo Clover.zip é válido."""
     if not os.path.exists(file_path):
-        raise CloverUpdateError(f"Arquivo Clover.zip não encontrado: {file_path}")
+        raise CloverUpdateError(f"error_clover_zip_small", file_path=file_path)
 
     if os.path.getsize(file_path) < MIN_CLOVER_ZIP_SIZE:
-        raise CloverUpdateError("O arquivo Clover.zip baixado está muito pequeno. Provavelmente o download falhou.")
+        raise CloverUpdateError("error_clover_zip_small")
 
     ret_code, _, _ = run_command(["unzip", "-t", file_path])
     if ret_code != 0:
-        raise CloverUpdateError("O arquivo Clover.zip baixado não é um arquivo ZIP válido.")
+        raise CloverUpdateError("error_invalid_zip")
 
     if CLOVER_SHA256:
-        logger("Verificando integridade do arquivo Clover.zip...", YELLOW)
+        logger("verifying_file_integrity", YELLOW)
         sha256_hash = hashlib.sha256()
         with open(file_path,"rb") as f:
             # Lê o arquivo em pedaços para evitar sobrecarga de memória
             for byte_block in iter(lambda: f.read(4096),b""):
                 sha256_hash.update(byte_block)
         if sha256_hash.hexdigest() != CLOVER_SHA256:
-            raise CloverUpdateError("A integridade do arquivo Clover.zip não pôde ser verificada. O hash SHA256 não corresponde.")
+            raise CloverUpdateError("error_verifying_integrity")
         logger("file_integrity_verified", GREEN)
 
 def cleanup():
