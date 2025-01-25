@@ -1,4 +1,5 @@
 {
+  "en": {
     "verifying_environment": "Verifying environment...",
     "environment_verified": "Environment verified successfully.",
     "verifying_dependencies": "Checking dependencies...",
@@ -107,5 +108,12 @@
     "start_update_drivers": "Starting update of UEFI drivers...",
     "start_full_update": "Starting full update of Clover...",
     "efi_ready": "EFI partition ({efi_dir}) is mounted and ready for update.",
-    "efi_not_writable": "Error: The EFI partition ({efi_dir}) is not mounted or is not accessible for writing. Mount it before continuing."
+    "efi_not_writable": "Error: The EFI partition ({efi_dir}) is not mounted or is not accessible for writing. Mount it before continuing.",
+    "success_update_bootx64": "BOOTX64.efi updated successfully!",
+    "success_update_cloverx64": "CLOVERX64.efi updated successfully!",
+    "success_update_drivers": "UEFI drivers updated successfully!",
+    "efi_dir_after_mount": "Value of EFI_DIR after mounting: {efi_dir}",
+    "checking_efi_read_only": "Checking if {mount_point} is mounted as read-only...",
+    "efi_read_write": "{mount_point} is mounted as read/write."
+  }
 }
