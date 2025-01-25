@@ -11,8 +11,8 @@ from menu import exibir_menu
 def main():
     """Função principal do script."""
     try:
-        # Carrega as traduções do idioma desejado (por exemplo, português)
-        load_translations("pt")
+        # Carrega as traduções do idioma do sistema ou usa inglês como padrão
+        load_translations("")
 
         check_environment()
         check_dependencies()
@@ -29,15 +29,15 @@ def main():
             exibir_menu(efi_dir, clover_zip_path)
             logger("update_successful", GREEN)  # Mensagem de sucesso
         else:
-            logger("error_efi_dir_not_defined", "RED")  # Mensagem de erro
+            logger("error_efi_dir_not_defined", RED)  # Mensagem de erro
 
     except SystemExit as se:
         if se.code != 0:
-            logger("script_error", "RED")
+            logger("script_error", RED)
     except CloverUpdateError as e:
-        logger("error", "RED", error=e)  # Mensagem de erro formatada
+        logger("error", RED, error=e)  # Mensagem de erro formatada
     except Exception as e:
-        logger("unexpected_error", "RED", error=e)  # Mensagem de erro formatada
+        logger("unexpected_error", RED, error=e)  # Mensagem de erro formatada
     finally:
         cleanup()
         logger("logs_saved", None, logfile=LOGFILE)  # Mensagem de log
