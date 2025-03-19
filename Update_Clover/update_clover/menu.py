@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from efi_handler import EFI_DIR, is_efi_read_only
 from logger import logger, YELLOW, RED, GREEN
 from clover_updater import (
