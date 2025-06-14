@@ -30,6 +30,7 @@ https://discord.gg/5hvZ5u7QXQ
 
 -   **macOS:** O script foi desenvolvido para ser executado no macOS.
 -   **Python 3:** Certifique-se de ter o Python 3 instalado. Você pode verificar digitando `python3 --version` no terminal.
+-   **Módulos Python:** Este script utiliza apenas a biblioteca padrão, portanto **não é necessário instalar pacotes adicionais com `pip`**.
 -   **Dependências:** O script depende dos seguintes comandos:
     -   `curl`
     -   `unzip`
@@ -150,6 +151,7 @@ https://discord.gg/5hvZ5u7QXQ
 
 -   **macOS:** The script is designed to run on macOS.
 -   **Python 3:** Make sure you have Python 3 installed. You can verify this by typing `python3 --version` in the terminal.
+-   **Python Modules:** The script relies solely on the Python standard library, so **no additional packages need to be installed with `pip`**.
 -   **Dependencies:** The script relies on the following commands:
     -   `curl`
     -   `unzip`
