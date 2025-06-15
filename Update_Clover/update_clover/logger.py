@@ -31,8 +31,13 @@ def load_translations(language=None):
     print(f"Tentando carregar traduções de: {translations_path}/{language}.json")
     try:
         with open(f"{translations_path}/{language}.json", "r", encoding="utf-8") as f:
-            translations = json.load(f)
-        logger(f"Traduções carregadas com sucesso para o idioma: {language}", GREEN)
+            data = json.load(f)
+            translations = data.get(language, {})
+        if not translations and language != "en":
+            logger("language_section_not_found", YELLOW, language=language)
+            load_translations("en")
+        else:
+            logger(f"Traduções carregadas com sucesso para o idioma: {language}", GREEN)
     except FileNotFoundError:
         logger("translation_file_not_found", RED, language=language)
         # Carrega o idioma padrão (inglês) se o arquivo de tradução não for encontrado

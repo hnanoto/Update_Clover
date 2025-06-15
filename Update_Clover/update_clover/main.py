@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import os
-from config import LOGFILE, SCRIPT_DIR
+from config import LOGFILE, SCRIPT_DIR, RED
 from utils import check_environment, check_dependencies, cleanup, CloverUpdateError
 from efi_handler import list_all_efi, backup_efi
 from clover_updater import download_clover
