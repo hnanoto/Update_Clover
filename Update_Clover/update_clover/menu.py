@@ -13,10 +13,10 @@ def exibir_menu(efi_dir, clover_zip_path):
     while True:
         # Exibe o menu com as mensagens traduzidas
         print("\n=== " + logger("clover_update_menu", YELLOW, return_message=True) + " ===")
-        print("1. " + logger("Update BOOTX64.efi and CLOVERX64.efi", YELLOW, return_message=True))
-        print("2. " + logger("Update Drivers", YELLOW, return_message=True))
-        print("3. " + logger("Full Update", YELLOW, return_message=True))
-        print("4. " + logger("option exit", YELLOW, return_message=True))
+        print("1. " + logger("option_update_boot_clover", YELLOW, return_message=True))
+        print("2. " + logger("option_update_drivers", YELLOW, return_message=True))
+        print("3. " + logger("option_update_all", YELLOW, return_message=True))
+        print("4. " + logger("option_exit", YELLOW, return_message=True))
 
         escolha = input("\n" + logger("choose_option", YELLOW, return_message=True) + " ")
 
