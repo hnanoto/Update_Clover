@@ -133,3 +133,22 @@ def update_clover_drivers(efi_dir, clover_zip_path):
             logger("driver_not_found", YELLOW, driver_basename=driver_basename)
 
     logger("uefi_drivers_updated", GREEN)
+
+def unzip_clover(clover_zip_path):
+    """Extrai o Clover.zip e retorna o caminho da pasta EFI extraída."""
+    import zipfile
+    import tempfile
+
+    if not os.path.isfile(clover_zip_path):
+        raise CloverUpdateError("Clover.zip não encontrado.")
+
+    extract_dir = tempfile.mkdtemp(prefix="clover_extracted_")
+
+    with zipfile.ZipFile(clover_zip_path, 'r') as zip_ref:
+        zip_ref.extractall(extract_dir)
+
+    efi_path = os.path.join(extract_dir, "EFI")
+    if not os.path.isdir(efi_path):
+        raise CloverUpdateError("Estrutura EFI não encontrada após extração do Clover.zip.")
+
+    return extract_dir

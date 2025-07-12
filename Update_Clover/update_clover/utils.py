@@ -5,6 +5,7 @@ import shutil
 import hashlib
 from config import SCRIPT_DIR, RED, GREEN, YELLOW, MIN_CLOVER_ZIP_SIZE, CLOVER_SHA256
 from logger import logger
+from config import GREEN, RED
 
 class CloverUpdateError(Exception):
     """Exceção personalizada para erros relacionados à atualização do Clover."""
@@ -74,3 +75,33 @@ def cleanup():
         logger("error_removing_directory", RED, dir_path=f"{SCRIPT_DIR}/Clover_extracted", error=e)
 
     logger("cleanup_completed", GREEN)
+
+def download_ocbinarydata():
+    import subprocess
+    import os
+    from config import SCRIPT_DIR
+    oc_dir = os.path.join(SCRIPT_DIR, 'OcBinaryData')
+    if os.path.exists(oc_dir):
+        logger('OcBinaryData já está presente.', GREEN)
+        return oc_dir
+    try:
+        logger('Clonando OcBinaryData...', GREEN)
+        subprocess.run(['git', 'clone', '--depth=1', 'https://github.com/acidanthera/OcBinaryData.git', oc_dir], check=True)
+        logger('OcBinaryData clonado com sucesso.', GREEN)
+        return oc_dir
+    except subprocess.CalledProcessError:
+        logger('Erro ao clonar o repositório OcBinaryData.', RED)
+        raise CloverUpdateError('Falha ao clonar OcBinaryData.')
+
+
+def copy_hfsplus_driver(ocbinarydata_dir, target_drivers_dir):
+    import shutil
+    import os
+    source = os.path.join(ocbinarydata_dir, 'Drivers', 'HFSPlus.efi')
+    if not os.path.isfile(source):
+        logger('driver_not_found', RED)
+        return
+    os.makedirs(target_drivers_dir, exist_ok=True)
+    destination = os.path.join(target_drivers_dir, 'HFSPlus.efi')
+    shutil.copy2(source, destination)
+    logger('hfsplus_driver_copied', GREEN)

@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
 import os
-from config import LOGFILE, SCRIPT_DIR, RED
+from config import LOGFILE, SCRIPT_DIR
 from utils import check_environment, check_dependencies, cleanup, CloverUpdateError
 from efi_handler import list_all_efi, backup_efi
+from utils import download_ocbinarydata
 from clover_updater import download_clover
 from logger import logger, GREEN, load_translations
 from menu import exibir_menu
@@ -20,6 +21,7 @@ def main():
         # Baixa o Clover apenas uma vez e obtém o caminho do arquivo
         clover_zip_path = os.path.join(SCRIPT_DIR, "Clover.zip")
         download_clover(clover_zip_path)
+        ocbinarydata_dir = download_ocbinarydata()
 
         efi_dir = list_all_efi()  # Obtenha o valor de EFI_DIR retornado por list_all_efi
 

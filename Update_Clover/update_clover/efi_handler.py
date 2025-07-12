@@ -159,3 +159,36 @@ def backup_efi():
 
     except Exception as e:
         raise CloverUpdateError("error_creating_backup", error=e)
+
+
+def update_clover_drivers(clover_extracted_dir, ocbinarydata_dir, efi_mount_point):
+    import glob
+    from utils import copy_hfsplus_driver
+    logger('start_update_drivers', YELLOW)
+    source_dir = os.path.join(clover_extracted_dir, 'EFI', 'CLOVER', 'drivers', 'UEFI')
+    dest_dir = os.path.join(efi_mount_point, 'EFI', 'CLOVER', 'drivers', 'UEFI')
+    logger('listing_drivers', YELLOW)
+    if not os.path.isdir(source_dir):
+        logger('driver_not_found', RED)
+        return
+    # Remove TODOS os arquivos antigos da pasta drivers/UEFI
+    if os.path.isdir(dest_dir):
+        for f in os.listdir(dest_dir):
+            file_path = os.path.join(dest_dir, f)
+            if os.path.isfile(file_path):
+                try:
+                    os.remove(file_path)
+                except Exception:
+                    pass
+    else:
+        os.makedirs(dest_dir, exist_ok=True)
+    # Copia todos os .efi novos
+    for f in glob.glob(os.path.join(source_dir, '*.efi')):
+        try:
+            shutil.copy2(f, dest_dir)
+            logger(f'Driver {os.path.basename(f)} atualizado', GREEN)
+        except Exception:
+            logger('driver_not_found', RED)
+    # Copia HFSPlus.efi
+    copy_hfsplus_driver(ocbinarydata_dir, dest_dir)
+    logger('uefi_drivers_updated', GREEN)
