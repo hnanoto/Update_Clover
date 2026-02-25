@@ -56,7 +56,7 @@ def check_config_plist(efi_dir, clover_extracted_dir):
 
         # As seções do Clover que contém estrutura de Quirks baseada em OpenCore e UEFI.
         # Nós não faremos nas seções Device/ACPI para proteger os DSDTs e Patches do usuário.
-        quirk_sections = ["Quirks", "BooterQuirks", "KernelQuirks", "UEFI"]
+        quirk_sections = ["Quirks", "BooterQuirks", "KernelQuirks", "UEFI", "KernelAndKextPatches"]
         
         changes = False
         
