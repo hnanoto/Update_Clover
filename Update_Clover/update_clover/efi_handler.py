@@ -49,7 +49,21 @@ def list_all_efi():
     if ret_code != 0:
         raise CloverUpdateError("error_list_partitions")
 
-    efi_partitions = [line.split()[-1] for line in stdout.splitlines() if "EFI" in line]
+    efi_partitions = []
+    # Permite varredura em pendrives FAT32 comuns além das partições fixas "EFI"
+    allowed_types = ["EFI", "DOS_FAT_32", "Windows_FAT_32", "Microsoft Basic Data", "0xEF"]
+    for line in stdout.splitlines():
+        if any(t in line for t in allowed_types):
+            parts = line.split()
+            if parts:
+                candidate = parts[-1]
+                # Verifica se o identificador segue a estrutura física de partição Apple (ej: disk2s1)
+                if candidate.startswith("disk") and "s" in candidate:
+                    efi_partitions.append(candidate)
+
+    # Remover duplicatas mantendo a ordem para caso um disco caia em dois arrays
+    efi_partitions = list(dict.fromkeys(efi_partitions))
+
     if not efi_partitions:
         raise CloverUpdateError("error_no_efi_partition")
 

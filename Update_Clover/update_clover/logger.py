@@ -3,23 +3,26 @@ import json
 import os
 from config import LOGFILE, RED, GREEN, YELLOW, NC, SCRIPT_DIR
 import locale
+import subprocess
 
 translations = {}  # Dicionário global para armazenar as traduções
 
 def get_system_language():
-    """Obtém o idioma preferido do sistema operacional."""
+    """Obtém o idioma preferido do macOS."""
     try:
-        # Obtém o idioma e a codificação do sistema
+        result = subprocess.run(["defaults", "read", "-g", "AppleLocale"], capture_output=True, text=True)
+        if result.returncode == 0 and result.stdout:
+            # result.stdout devolve algo como "pt_BR\n" ou "en_US\n"
+            locale_str = result.stdout.strip()
+            return locale_str.split('_')[0]
+            
+        # Fallback para o locale nativo caso defaults falhe
         system_locale = locale.getdefaultlocale()
-        if system_locale[0]:
-            # Retorna o código do idioma (por exemplo, 'pt_BR', 'en_US')
-            return system_locale[0].split('_')[0]  # Retorna apenas o código principal (pt, en, etc.)
-        else:
-            # Retorna None se não conseguir obter o idioma
-            return None
+        if system_locale and system_locale[0]:
+            return system_locale[0].split('_')[0]
     except Exception as e:
-        logger("error_getting_system_language", RED, error=e)
-        return None
+        print(f"Erro ao detectar idioma: {e}")
+    return None
 
 def load_translations(language=None):
     """Carrega as traduções de um arquivo JSON."""
