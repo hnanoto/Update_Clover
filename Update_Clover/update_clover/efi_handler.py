@@ -55,22 +55,36 @@ def list_all_efi():
     for line in stdout.splitlines():
         if any(t in line for t in allowed_types):
             parts = line.split()
-            if parts:
+            if len(parts) >= 4:
                 candidate = parts[-1]
                 # Verifica se o identificador segue a estrutura física de partição Apple (ej: disk2s1)
                 if candidate.startswith("disk") and "s" in candidate:
-                    efi_partitions.append(candidate)
+                    size_unit = parts[-2]
+                    size_val = parts[-3]
+                    
+                    # Limpa o número da partição (ex "1:" ou "*") no começo da linha
+                    start_idx = 1 if (parts[0].endswith(":") or parts[0] == "*") else 0
+                    
+                    name_type_str = " ".join(parts[start_idx:-3])
+                    
+                    display_desc = f"{candidate} - {name_type_str} ({size_val} {size_unit})"
+                    efi_partitions.append((candidate, display_desc))
 
-    # Remover duplicatas mantendo a ordem para caso um disco caia em dois arrays
-    efi_partitions = list(dict.fromkeys(efi_partitions))
+    # Remover duplicatas mantendo a ordem através de dict nativo do Python 3.7+
+    unique_partitions = {}
+    for ident, desc in efi_partitions:
+        if ident not in unique_partitions:
+            unique_partitions[ident] = desc
+    
+    efi_partitions_list = list(unique_partitions.items())
 
-    if not efi_partitions:
+    if not efi_partitions_list:
         raise CloverUpdateError("error_no_efi_partition")
 
     logger("efi_partitions_detected", YELLOW)
-    for idx, part in enumerate(efi_partitions):
-        print(f"{idx + 1}. {part}")
-    print(f"{len(efi_partitions) + 1}. Exit")
+    for idx, (ident, desc) in enumerate(efi_partitions_list):
+        print(f"{idx + 1}. {desc}")
+    print(f"{len(efi_partitions_list) + 1}. Exit")
 
     while True:
         choice_str = input(logger("choose_option", YELLOW))
@@ -81,11 +95,11 @@ def list_all_efi():
 
         choice = int(choice_str)
 
-        if choice == len(efi_partitions) + 1:
+        if choice == len(efi_partitions_list) + 1:
             logger("exiting", YELLOW)
             sys.exit(0)
-        elif 1 <= choice <= len(efi_partitions):
-            selected_efi = efi_partitions[choice - 1]
+        elif 1 <= choice <= len(efi_partitions_list):
+            selected_efi = efi_partitions_list[choice - 1][0]
             logger("efi_partition_selected", GREEN, partition=selected_efi)
 
             # Loop para aguardar a montagem da partição, se necessário
