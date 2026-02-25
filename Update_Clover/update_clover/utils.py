@@ -5,7 +5,7 @@ import shutil
 import hashlib
 from config import SCRIPT_DIR, RED, GREEN, YELLOW, MIN_CLOVER_ZIP_SIZE, CLOVER_SHA256
 from logger import logger
-from config import GREEN, RED
+
 
 class CloverUpdateError(Exception):
     """Exceção personalizada para erros relacionados à atualização do Clover."""
@@ -27,7 +27,7 @@ def check_environment():
 def check_dependencies():
     """Verifica se as dependências necessárias estão instaladas."""
     logger("verifying_dependencies", YELLOW)
-    dependencies = ["curl", "unzip", "/usr/libexec/PlistBuddy", "installer"]
+    dependencies = ["curl", "unzip"]
     for dep in dependencies:
         ret_code, _, _ = run_command(["which", dep])
         if ret_code != 0:

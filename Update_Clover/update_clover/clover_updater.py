@@ -52,19 +52,8 @@ def download_clover(clover_zip_path):
 
     logger("clover_downloaded", GREEN)
 
-def update_bootx64(efi_dir, clover_zip_path):
+def update_bootx64(efi_dir, clover_extracted_dir):
     """Atualiza o arquivo BOOTX64.efi na partição EFI."""
-    clover_extracted_dir = os.path.join(SCRIPT_DIR, "Clover_extracted")
-
-    # Descompactar o Clover
-    logger("unpacking_clover", YELLOW)
-    ret_code, _, stderr = run_command(["unzip", "-o", clover_zip_path, "-d", clover_extracted_dir])
-    if ret_code != 0:
-        raise CloverUpdateError("error_unpacking_clover")
-
-    if not os.path.isdir(clover_extracted_dir):
-        raise CloverUpdateError("error_directory_not_created")
-
     clover_efi_dir = os.path.join(clover_extracted_dir, "CloverV2", "EFI")
 
     # Cria os diretórios de destino se eles não existirem
@@ -77,9 +66,8 @@ def update_bootx64(efi_dir, clover_zip_path):
     except Exception as e:
         raise CloverUpdateError(f"error_updating_bootx64 {e}")
 
-def update_cloverx64(efi_dir, clover_zip_path):
+def update_cloverx64(efi_dir, clover_extracted_dir):
     """Atualiza o arquivo CLOVERX64.efi na partição EFI."""
-    clover_extracted_dir = os.path.join(SCRIPT_DIR, "Clover_extracted")
     clover_efi_dir = os.path.join(clover_extracted_dir, "CloverV2", "EFI")
 
     # Cria os diretórios de destino se eles não existirem
@@ -92,10 +80,11 @@ def update_cloverx64(efi_dir, clover_zip_path):
     except Exception as e:
         raise CloverUpdateError(f"error_updating_cloverx64 {e}")
 
-def update_clover_drivers(efi_dir, clover_zip_path):
+def update_clover_drivers(efi_dir, clover_extracted_dir, ocbinarydata_dir):
     """Atualiza os drivers UEFI do Clover na partição EFI."""
     logger("start_update_drivers", YELLOW)
-    clover_extracted_dir = os.path.join(SCRIPT_DIR, "Clover_extracted")
+    from utils import copy_hfsplus_driver
+    
     clover_drivers_dir = os.path.join(clover_extracted_dir, "CloverV2", "EFI", "CLOVER", "Drivers")
     efi_drivers_dir = os.path.join(efi_dir, "EFI", "CLOVER", "Drivers")
     efi_uefi_dir = os.path.join(efi_drivers_dir, "UEFI")
@@ -114,6 +103,9 @@ def update_clover_drivers(efi_dir, clover_zip_path):
 
     for driver_path in existing_drivers:
         driver_basename = os.path.basename(driver_path)
+        if driver_basename.lower() == "hfsplus.efi":
+            continue # HFSPlus is updated from OcBinaryData separately
+            
         driver_updated = False  # Flag para verificar se o driver foi atualizado
 
         # Verifica se o driver existe em alguma das subpastas do Clover baixado
@@ -132,23 +124,21 @@ def update_clover_drivers(efi_dir, clover_zip_path):
         if not driver_updated:
             logger("driver_not_found", YELLOW, driver_basename=driver_basename)
 
+    # Update HFSPlus.efi from OcBinaryData
+    copy_hfsplus_driver(ocbinarydata_dir, efi_uefi_dir)
+
     logger("uefi_drivers_updated", GREEN)
 
 def unzip_clover(clover_zip_path):
-    """Extrai o Clover.zip e retorna o caminho da pasta EFI extraída."""
-    import zipfile
-    import tempfile
+    """Descompacta o arquivo Clover.zip no diretório Clover_extracted."""
+    clover_extracted_dir = os.path.join(SCRIPT_DIR, "Clover_extracted")
+    logger("unpacking_clover", YELLOW)
+    
+    ret_code, _, stderr = run_command(["unzip", "-o", "-q", clover_zip_path, "-d", clover_extracted_dir])
+    if ret_code != 0:
+        raise CloverUpdateError("error_unpacking_clover")
 
-    if not os.path.isfile(clover_zip_path):
-        raise CloverUpdateError("Clover.zip não encontrado.")
+    if not os.path.isdir(clover_extracted_dir):
+        raise CloverUpdateError("error_directory_not_created")
 
-    extract_dir = tempfile.mkdtemp(prefix="clover_extracted_")
-
-    with zipfile.ZipFile(clover_zip_path, 'r') as zip_ref:
-        zip_ref.extractall(extract_dir)
-
-    efi_path = os.path.join(extract_dir, "EFI")
-    if not os.path.isdir(efi_path):
-        raise CloverUpdateError("Estrutura EFI não encontrada após extração do Clover.zip.")
-
-    return extract_dir
+    return clover_extracted_dir

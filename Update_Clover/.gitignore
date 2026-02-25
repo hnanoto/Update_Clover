@@ -1,0 +1,6 @@
+__pycache__/
+*.log
+update_clover/Clover.zip
+update_clover/Clover_extracted/
+update_clover/OcBinaryData/
+.DS_Store

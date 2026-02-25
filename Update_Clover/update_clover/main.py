@@ -6,7 +6,7 @@ from utils import check_environment, check_dependencies, cleanup, CloverUpdateEr
 from efi_handler import list_all_efi, backup_efi
 from utils import download_ocbinarydata
 from clover_updater import download_clover
-from logger import logger, GREEN, load_translations
+from logger import logger, GREEN, RED, load_translations
 from menu import exibir_menu
 
 def main():
@@ -21,14 +21,19 @@ def main():
         # Baixa o Clover apenas uma vez e obtém o caminho do arquivo
         clover_zip_path = os.path.join(SCRIPT_DIR, "Clover.zip")
         download_clover(clover_zip_path)
+        
+        # Descompacta o Clover
+        from clover_updater import unzip_clover
+        clover_extracted_dir = unzip_clover(clover_zip_path)
+        
         ocbinarydata_dir = download_ocbinarydata()
 
         efi_dir = list_all_efi()  # Obtenha o valor de EFI_DIR retornado por list_all_efi
 
         # Se EFI_DIR estiver definido, prossiga com o backup e o menu
         if efi_dir:
-            backup_efi()
-            exibir_menu(efi_dir, clover_zip_path)
+            backup_efi(efi_dir)
+            exibir_menu(efi_dir, clover_extracted_dir, ocbinarydata_dir)
             logger("update_successful", GREEN)  # Mensagem de sucesso
         else:
             logger("error_efi_dir_not_defined", RED)  # Mensagem de erro
