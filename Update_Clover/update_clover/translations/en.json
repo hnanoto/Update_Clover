@@ -1,5 +1,4 @@
 {
-  "en": {
     "verifying_environment": "Verifying environment...",
     "environment_verified": "Environment verified successfully.",
     "verifying_dependencies": "Checking dependencies...",
@@ -123,5 +122,4 @@
     "config_updated_successfully": "Great! Your config.plist was successfully merged with modern keys.",
     "config_already_up_to_date": "Perfect! Your config.plist is already populated with all current modern Quirks.",
     "error_updating_config": "Fatal error while trying to validate and patch XML plist: {e}"
-  }
 }
