@@ -4,7 +4,7 @@ import glob
 import json
 import re
 import sys
-from config import SCRIPT_DIR, CLOVER_REPO_URL, YELLOW, RED, GREEN
+from config import SCRIPT_DIR, CLOVER_OFFICIAL_REPO_URL, CLOVER_FORK_REPO_URL, YELLOW, RED, GREEN
 from utils import run_command, CloverUpdateError, validate_clover_zip
 from logger import logger
 
@@ -17,26 +17,35 @@ def download_clover(clover_zip_path):
         clover_latest_release_url = os.environ['CLOVER_DOWNLOAD_URL']
         logger("using_direct_download_url", GREEN, url=clover_latest_release_url)
     else:
-        # Obtém a última release do seu fork
-        ret_code, stdout, stderr = run_command([
-            "curl", "-s", CLOVER_REPO_URL
-        ])
-        if ret_code != 0:
-            raise CloverUpdateError("error_clover_info")
+        def fetch_url(api_url):
+            ret_code, stdout, stderr = run_command(["curl", "-s", api_url])
+            if ret_code != 0:
+                return None
+            try:
+                release_info = json.loads(stdout)
+                # Verifica se o Github negou a requisição (Rate limit Exceeded)
+                if release_info.get("message") and "rate limit" in release_info.get("message", "").lower():
+                    return None
+                    
+                assets = release_info.get('assets', [])
+                for asset in assets:
+                    if "Clover" in asset.get('name', '') and asset.get('name', '').endswith(".zip"):
+                        return asset.get('browser_download_url')
+            except Exception:
+                # regex fallback
+                match = re.search(r'"browser_download_url":\s*"(https://github\.com/.*?Clover.*?.zip)"', stdout)
+                if match:
+                    return match.group(1)
+            return None
 
-        try:
-            release_info = json.loads(stdout)
-            assets = release_info.get('assets', [])
-            for asset in assets:
-                if "Clover" in asset.get('name', '') and asset.get('name', '').endswith(".zip"):
-                    clover_latest_release_url = asset.get('browser_download_url')
-                    break
-            else:
-                clover_latest_release_url = None
-        except ImportError:
-            logger("error_json_module", RED)
-            match = re.search(r'"browser_download_url":\s*"(https://github\.com/.*?Clover.*?.zip)"', stdout)
-            clover_latest_release_url = match.group(1) if match else None
+        # 1. Tenta o repositório oficial
+        clover_latest_release_url = fetch_url(CLOVER_OFFICIAL_REPO_URL)
+        if clover_latest_release_url:
+            print(f"[{GREEN}✓\033[0;m] Repositório Fonte: CloverHackyColor (Oficial)")
+        else:
+            # 2. Em caso de falha API/Offline, parte para o Fork
+            print(f"[{YELLOW}!\033[0;m] Serviço oficial instável. Tentando Fallback local (hnanoto)...")
+            clover_latest_release_url = fetch_url(CLOVER_FORK_REPO_URL)
 
         if not clover_latest_release_url:
             raise CloverUpdateError("error_clover_link")

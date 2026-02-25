@@ -17,8 +17,11 @@ LOGFILE = os.path.join(SCRIPT_DIR, f"update_clover_{time.strftime('%Y%m%d%H%M%S'
 BACKUP_BASE_DIR = os.path.expanduser("~")
 
 # --- Configurações do Clover ---
-# URL base do repositório do Clover (API do GitHub)
-CLOVER_REPO_URL = "https://api.github.com/repos/hnanoto/CloverBootloader-Hackintosh-and-Beyond/releases/latest"
+# URL base do repositório Oficial do Clover (API do GitHub)
+CLOVER_OFFICIAL_REPO_URL = "https://api.github.com/repos/CloverHackyColor/CloverBootloader/releases/latest"
+
+# URL base do repositório do seu Fork (Fallback Seguro)
+CLOVER_FORK_REPO_URL = "https://api.github.com/repos/hnanoto/CloverBootloader-Hackintosh-and-Beyond/releases/latest"
 
 # URL de download direto (se você quiser forçar uma versão específica, descomente abaixo e comente o CLOVER_REPO_URL)
 # CLOVER_DOWNLOAD_URL = "https://github.com/hnanoto/CloverBootloader-Hackintosh-and-Beyond/releases/download/5161/CloverV2-5161.zip"
