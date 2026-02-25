@@ -19,7 +19,6 @@
     "press_ctrl_c_to_exit": "Press Ctrl+C to abort waiting and exit.",
     "efi_partition_mounted": "EFI partition {partition} mounted on {mount_point}.",
     "efi_partition_not_mounted": "EFI partition {partition} is still not mounted. Waiting...",
-    "error_getting_efi_info": "Error getting EFI partition information {partition}. Waiting...",
     "mount_manually": "Mount the EFI manually using: 'diskutil mount {efi_partition}' and run the script again.",
     "error_getting_mount_point": "Error: Could not find mount point for {selected_efi}",
     "invalid_choice": "Invalid choice. Try again.",
@@ -100,7 +99,8 @@
     "option_update_boot_clover": "1. Update BOOTX64.efi and CLOVERX64.efi",
     "option_update_drivers": "2. Update Drivers",
     "option_update_all": "3. Full Update",
-    "option_exit": "4. Exit",
+    "option_update_config": "4. Validate config.plist (Add Quirks/Keys)",
+    "option_exit": "5. Exit",
     "choose_option": "Choose an option: ",
     "start_update_boot_clover": "Starting update of BOOTX64.efi and CLOVERX64.efi...",
     "start_update_bootx64": "Starting update of BOOTX64.efi...",
@@ -114,6 +114,14 @@
     "success_update_drivers": "UEFI drivers updated successfully!",
     "efi_dir_after_mount": "Value of EFI_DIR after mounting: {efi_dir}",
     "checking_efi_read_only": "Checking if {mount_point} is mounted as read-only...",
-    "efi_read_write": "{mount_point} is mounted as read/write."
+    "efi_read_write": "{mount_point} is mounted as read/write.",
+    "added_missing_key": "Safely added missing XML Quirk/key: {key}",
+    "start_config_update": "Reading and comparing your config.plist structure with the latest reference...",
+    "error_sample_plist_not_found": "Bootloader sample reference (config-sample.plist) not found. Download the clover ZIP first.",
+    "config_plist_not_found": "Warning: User's config.plist not found at '{path}'. Are you sure this is a Clover EFI structure?",
+    "config_backup_created": "Safety .bak backup created just in case: {path}",
+    "config_updated_successfully": "Great! Your config.plist was successfully merged with modern keys.",
+    "config_already_up_to_date": "Perfect! Your config.plist is already populated with all current modern Quirks.",
+    "error_updating_config": "Fatal error while trying to validate and patch XML plist: {e}"
   }
 }

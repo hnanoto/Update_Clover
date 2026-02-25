@@ -99,7 +99,8 @@
         "option_update_boot_clover": "1. Atualizar BOOTX64.efi e CLOVERX64.efi",
         "option_update_drivers": "2. Atualizar Drivers",
         "option_update_all": "3. Atualização Completa",
-        "option_exit": "4. Sair",
+        "option_update_config": "4. Validar config.plist (Atualizar Quirks/Keys)",
+        "option_exit": "5. Sair",
         "choose_option": "Escolha uma opção: ",
         "start_update_boot_clover": "Iniciando atualização do BOOTX64.efi e CLOVERX64.efi...",
         "start_update_bootx64": "Iniciando atualização do BOOTX64.efi...",
@@ -110,7 +111,15 @@
         "efi_not_writable": "Erro: A partição EFI ({efi_dir}) não está montada ou não está acessível para escrita. Monte-a antes de continuar.",
         "success_update_bootx64": "BOOTX64.efi atualizado com sucesso!",
         "success_update_cloverx64": "CLOVERX64.efi atualizado com sucesso!",
-        "success_update_drivers": "Drivers UEFI atualizados com sucesso!"
+        "success_update_drivers": "Drivers UEFI atualizados com sucesso!",
+        "added_missing_key": "Chave de Quirk/XML adicionada com segurança: {key}",
+        "start_config_update": "Lendo e comparando o config.plist com a versão mais nova de Quirks...",
+        "error_sample_plist_not_found": "A referência do Bootloader (config-sample.plist) não foi encontrada na extração!",
+        "config_plist_not_found": "Aviso ignorável: Nenhum config.plist detectado na sua EFI no caminho: '{path}'.",
+        "config_backup_created": "Backup preventivo (.bak) criado em caso de falha no boot: {path}",
+        "config_updated_successfully": "Parabéns! O seu config.plist foi mesclado com as novas chaves estruturais com sucesso!",
+        "config_already_up_to_date": "Excelente! O seu config.plist já está 100% atualizado com todos os Quirks da última versão.",
+        "error_updating_config": "Erro fatal durante a tentativa de mesclar o XML (plist): {e}"
     },
     "hfsplus_driver_copied": "Driver HFSPlus.efi copiado com sucesso."
 }

@@ -13,10 +13,11 @@ def exibir_menu(efi_dir, clover_extracted_dir, ocbinarydata_dir):
     while True:
         # Exibe o menu com as mensagens traduzidas
         print("\n=== " + logger("clover_update_menu", YELLOW, return_message=True) + " ===")
-        print("1. " + logger("Update BOOTX64.efi and CLOVERX64.efi", YELLOW, return_message=True))
-        print("2. " + logger("Update Drivers", YELLOW, return_message=True))
-        print("3. " + logger("Full Update", YELLOW, return_message=True))
-        print("4. " + logger("option exit", YELLOW, return_message=True))
+        print(logger("option_update_boot_clover", YELLOW, return_message=True))
+        print(logger("option_update_drivers", YELLOW, return_message=True))
+        print(logger("option_update_all", YELLOW, return_message=True))
+        print(logger("option_update_config", YELLOW, return_message=True))
+        print(logger("option_exit", YELLOW, return_message=True))
 
         escolha = input("\n" + logger("choose_option", YELLOW, return_message=True) + " ")
 
@@ -34,6 +35,8 @@ def exibir_menu(efi_dir, clover_extracted_dir, ocbinarydata_dir):
         elif escolha == "3":
             atualizar_tudo(efi_dir, clover_extracted_dir, ocbinarydata_dir)
         elif escolha == "4":
+            validar_config_plist(efi_dir, clover_extracted_dir)
+        elif escolha == "5":
             logger("exiting", YELLOW)
             sys.exit(0)
         else:
@@ -85,3 +88,11 @@ def atualizar_boot_clover(efi_dir, clover_extracted_dir):
         logger("boot_clover_update_success", GREEN)
     except Exception as e:
         logger("boot_clover_update_error", RED, error=e)
+
+def validar_config_plist(efi_dir, clover_extracted_dir):
+    """Verifica e atualiza Quirks no config.plist do usuário."""
+    try:
+        from config_validator import check_config_plist
+        check_config_plist(efi_dir, clover_extracted_dir)
+    except Exception as e:
+        logger("error_updating_config", RED, e=e)
